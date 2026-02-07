@@ -2,9 +2,38 @@ import React, { useState } from 'react';
 import { VideoPlayer } from './components/video/VideoPlayer';
 import { Tooltip } from './components/ui/Tooltip';
 import { Modal } from './components/ui/Modal';
+import { checkHealth, translateSubtitle } from './utils/api';
 
 const App: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
+  const [apiResponse, setApiResponse] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+
+  const handleHealthCheck = async () => {
+    setLoading(true);
+    setApiResponse('');
+    try {
+      const result = await checkHealth();
+      setApiResponse(JSON.stringify(result, null, 2));
+    } catch (error) {
+      setApiResponse(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTranslate = async () => {
+    setLoading(true);
+    setApiResponse('');
+    try {
+      const result = await translateSubtitle();
+      setApiResponse(JSON.stringify(result, null, 2));
+    } catch (error) {
+      setApiResponse(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -62,6 +91,32 @@ const App: React.FC = () => {
                 <li>Select target language</li>
                 <li>Preview and download translated subtitles</li>
               </ul>
+              
+              {/* API Test Buttons */}
+              <div className="pt-3 border-t border-slate-700 space-y-2">
+                <p className="text-xs text-slate-400 font-medium">API Test:</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleHealthCheck}
+                    disabled={loading}
+                    className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-50 text-xs font-medium text-white transition-colors"
+                  >
+                    Test /health
+                  </button>
+                  <button
+                    onClick={handleTranslate}
+                    disabled={loading}
+                    className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-xs font-medium text-white transition-colors"
+                  >
+                    Test /translate
+                  </button>
+                </div>
+                {apiResponse && (
+                  <pre className="mt-2 p-2 rounded bg-slate-800 text-xs text-slate-200 overflow-auto max-h-32">
+                    {apiResponse}
+                  </pre>
+                )}
+              </div>
             </div>
           </section>
         </div>
